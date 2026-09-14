@@ -46,8 +46,7 @@ private slots:
 	void onEndClicked();
 	void onCopyServer();
 	void onCopyKey();
-	void onConnectDone(const QString &server, const QString &key, const QString &watchPath,
-			   const QString &note);
+	void onConnectDone(const QString &server, const QString &key, const QString &path, const QString &bid);
 	void onActionDone(const QString &message, bool live);
 	void onActionError(const QString &message);
 

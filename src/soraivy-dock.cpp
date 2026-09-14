@@ -27,7 +27,6 @@ extern "C" {
 
 #include <obs-frontend-api.h>
 #include <obs-module.h>
-#include <util/config-file.h>
 
 #include <QApplication>
 #include <QClipboard>
@@ -37,6 +36,7 @@ extern "C" {
 #include <QLineEdit>
 #include <QMetaObject>
 #include <QPushButton>
+#include <QSettings>
 #include <QVBoxLayout>
 
 #include <cstdio>
@@ -45,7 +45,6 @@ extern "C" {
 
 #define SORAIVY_DOCK_ID "soraivyDock"
 #define SORAIVY_DOCK_TITLE "Soraivy"
-#define SORAIVY_CONFIG_SECTION "SoraivyDock"
 #define SORAIVY_DEFAULT_API_BASE "https://www.soraivy.com"
 
 namespace {
@@ -197,40 +196,30 @@ void SoraivyDock::setBusy(bool busy)
 
 void SoraivyDock::loadPersisted()
 {
-	config_t *cfg = obs_frontend_get_global_config();
-	if (!cfg)
-		return;
-	const char *apiBase = config_get_string(cfg, SORAIVY_CONFIG_SECTION, "ApiBase");
-	const char *token = config_get_string(cfg, SORAIVY_CONFIG_SECTION, "Token");
-	const char *title = config_get_string(cfg, SORAIVY_CONFIG_SECTION, "Title");
-	const char *mode = config_get_string(cfg, SORAIVY_CONFIG_SECTION, "Mode");
-	const char *bid = config_get_string(cfg, SORAIVY_CONFIG_SECTION, "BroadcastId");
-	if (apiBase && *apiBase)
-		apiBaseEdit->setText(apiBase);
-	if (token && *token)
-		tokenEdit->setText(token);
-	if (title && *title)
+	/* Qt-native persistence: obs_frontend_get_global_config is deprecated. */
+	QSettings cfg("Soraivy", "obs-dock");
+	apiBaseEdit->setText(cfg.value("ApiBase", SORAIVY_DEFAULT_API_BASE).toString());
+	tokenEdit->setText(cfg.value("Token").toString());
+	QString title = cfg.value("Title").toString();
+	if (!title.isEmpty())
 		titleEdit->setText(title);
-	if (mode && strcmp(mode, "whip") == 0)
+	if (cfg.value("Mode").toString() == "whip")
 		modeBox->setCurrentIndex(1);
-	if (bid && *bid) {
-		broadcastId = bid;
+	QString bid = cfg.value("BroadcastId").toString();
+	if (!bid.isEmpty()) {
+		broadcastId = bid.toStdString();
 		statusLabel->setText("Restored previous session. Press Connect to refresh.");
 	}
 }
 
 void SoraivyDock::savePersisted() const
 {
-	config_t *cfg = obs_frontend_get_global_config();
-	if (!cfg)
-		return;
-	config_set_string(cfg, SORAIVY_CONFIG_SECTION, "ApiBase", apiBaseEdit->text().toUtf8().constData());
-	config_set_string(cfg, SORAIVY_CONFIG_SECTION, "Token", tokenEdit->text().toUtf8().constData());
-	config_set_string(cfg, SORAIVY_CONFIG_SECTION, "Title", titleEdit->text().toUtf8().constData());
-	config_set_string(cfg, SORAIVY_CONFIG_SECTION, "Mode",
-			  modeBox->currentData().toString().toUtf8().constData());
-	config_set_string(cfg, SORAIVY_CONFIG_SECTION, "BroadcastId", broadcastId.c_str());
-	config_save(cfg);
+	QSettings cfg("Soraivy", "obs-dock");
+	cfg.setValue("ApiBase", apiBaseEdit->text().trimmed());
+	cfg.setValue("Token", tokenEdit->text());
+	cfg.setValue("Title", titleEdit->text());
+	cfg.setValue("Mode", modeBox->currentData().toString());
+	cfg.setValue("BroadcastId", QString::fromStdString(broadcastId));
 }
 
 void SoraivyDock::onConnectClicked()
@@ -266,13 +255,12 @@ void SoraivyDock::onConnectClicked()
 	}).detach();
 }
 
-void SoraivyDock::onConnectDone(const QString &server, const QString &key, const QString &watchPath,
-				const QString &bid)
+void SoraivyDock::onConnectDone(const QString &server, const QString &key, const QString &path, const QString &bid)
 {
 	lastServer = server.toStdString();
 	lastKey = key.toStdString();
 	broadcastId = bid.toStdString();
-	watchPath = watchPath.toStdString();
+	watchPath = path.toStdString();
 
 	serverLabel->setText("Server: " + server);
 	keyLabel->setText(key.isEmpty() ? "Key: (WHIP needs no key)" : "Key: •••••••• (Copy key)");
@@ -337,8 +325,7 @@ void SoraivyDock::onGoLiveClicked()
 			return;
 		}
 		char err[SORAIVY_ERROR_SIZE];
-		QString msg = soraivy_parse_error(body, err, sizeof(err)) ? QString::fromUtf8(err)
-									 : "Go-live failed.";
+		QString msg = soraivy_parse_error(body, err, sizeof(err)) ? QString::fromUtf8(err) : "Go-live failed.";
 		if (!gone->load())
 			QMetaObject::invokeMethod(this, "onActionError", Qt::QueuedConnection, Q_ARG(QString, msg));
 	}).detach();
@@ -432,8 +419,8 @@ extern "C" void soraivy_dock_free(void)
 {
 	if (!soraivy_dock_widget)
 		return;
-	/* The frontend owns the widget after a successful add; removal (and
-	 * process shutdown) destroys it. Just drop our pointer. */
-	obs_frontend_remove_dock_by_id(SORAIVY_DOCK_ID);
+	/* The frontend owns the widget after a successful add; removal drops the
+	 * dock and its id from the UI. Just drop our pointer. */
+	obs_frontend_remove_dock(SORAIVY_DOCK_ID);
 	soraivy_dock_widget = nullptr;
 }
