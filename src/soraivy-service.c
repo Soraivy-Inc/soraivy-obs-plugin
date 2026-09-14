@@ -115,9 +115,10 @@ static obs_properties_t *soraivy_service_properties(void *data)
 	obs_property_list_add_string(mode, "WHIP — 60fps (OBS 31+)", "whip");
 
 	obs_properties_add_text(props, "title", "Stream title (new session)", OBS_TEXT_DEFAULT);
-	obs_properties_add_button(props, "connect_btn", "Connect (fetch creds + set OBS)", soraivy_connect_clicked);
-	obs_properties_add_button(props, "golive_btn", "Go Live", soraivy_go_live_clicked);
-	obs_properties_add_button(props, "end_btn", "End", soraivy_end_clicked);
+	obs_properties_add_button2(props, "connect_btn", "Connect (fetch creds + set OBS)", soraivy_connect_clicked,
+				   NULL);
+	obs_properties_add_button2(props, "golive_btn", "Go Live", soraivy_go_live_clicked, NULL);
+	obs_properties_add_button2(props, "end_btn", "End", soraivy_end_clicked, NULL);
 	return props;
 }
 
