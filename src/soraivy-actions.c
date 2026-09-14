@@ -22,6 +22,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #include <string.h>
 
 #include <obs-module.h>
+#include <plugin-support.h>
 
 #include "soraivy-api.h"
 #include "soraivy-json.h"
