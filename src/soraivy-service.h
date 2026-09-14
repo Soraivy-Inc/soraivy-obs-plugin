@@ -32,9 +32,10 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 /* Fixed buffers are never reallocated, so get_url/get_key readers cannot
  * dangle. lock excludes settings-mirror vs worker-snapshot races. server,
- * key, bearer_token, broadcast_id and watch_path are written by the
- * connect worker only — update() mirrors user-editable fields alone, so a
- * settings edit can never clobber fetched credentials. */
+ * key and bearer_token are written by the connect worker and by the dock
+ * (through service settings); update() mirrors user-editable fields plus
+ * non-empty server/key/bearer so a settings pass can never clobber fetched
+ * credentials with blanks. broadcast_id and watch_path stay worker-only. */
 struct soraivy_service {
 	pthread_mutex_t lock;
 	char api_base[SORAIVY_API_BASE_SIZE];

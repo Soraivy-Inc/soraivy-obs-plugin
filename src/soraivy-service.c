@@ -29,11 +29,28 @@ static const char *soraivy_service_name(void *type_data)
 
 static void soraivy_mirror_user_settings(struct soraivy_service *service, obs_data_t *settings)
 {
+	const char *server;
+	const char *key;
+	const char *bearer;
+
 	pthread_mutex_lock(&service->lock);
 	snprintf(service->api_base, sizeof(service->api_base), "%s", obs_data_get_string(settings, "api_base"));
 	snprintf(service->token, sizeof(service->token), "%s", obs_data_get_string(settings, "session_token"));
 	snprintf(service->mode, sizeof(service->mode), "%s", obs_data_get_string(settings, "mode"));
 	snprintf(service->title, sizeof(service->title), "%s", obs_data_get_string(settings, "title"));
+	/* The dock writes fetched creds back through service settings so Start
+	 * Streaming just works and they survive restarts via the profile save.
+	 * Only non-empty values are mirrored: defaults are empty, and a settings
+	 * pass must never clobber worker-fetched credentials with blanks. */
+	server = obs_data_get_string(settings, "server");
+	if (server && *server)
+		snprintf(service->server, sizeof(service->server), "%s", server);
+	key = obs_data_get_string(settings, "key");
+	if (key && *key)
+		snprintf(service->key, sizeof(service->key), "%s", key);
+	bearer = obs_data_get_string(settings, "bearer_token");
+	if (bearer && *bearer)
+		snprintf(service->bearer_token, sizeof(service->bearer_token), "%s", bearer);
 	pthread_mutex_unlock(&service->lock);
 }
 
