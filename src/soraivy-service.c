@@ -41,12 +41,10 @@ static void soraivy_service_update(void *data, obs_data_t *settings)
 
 	service->server = bstrdup(obs_data_get_string(settings, "server"));
 	service->key = bstrdup(obs_data_get_string(settings, "key"));
-	service->bearer_token =
-		bstrdup(obs_data_get_string(settings, "bearer_token"));
+	service->bearer_token = bstrdup(obs_data_get_string(settings, "bearer_token"));
 }
 
-static void *soraivy_service_create(obs_data_t *settings,
-				    obs_service_t *service)
+static void *soraivy_service_create(obs_data_t *settings, obs_service_t *service)
 {
 	struct soraivy_service *data = bzalloc(sizeof(*data));
 	UNUSED_PARAMETER(service);
