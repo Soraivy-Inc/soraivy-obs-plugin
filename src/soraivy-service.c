@@ -68,13 +68,57 @@ static void soraivy_service_get_defaults(obs_data_t *settings)
 	obs_data_set_default_string(settings, "server", "");
 	obs_data_set_default_string(settings, "key", "");
 	obs_data_set_default_string(settings, "bearer_token", "");
+	obs_data_set_default_string(settings, "api_base", "https://www.soraivy.com");
+	obs_data_set_default_string(settings, "mode", "rtmps");
+	obs_data_set_default_string(settings, "title", "Live");
+}
+
+static bool soraivy_connect_clicked(obs_properties_t *props, obs_property_t *property, void *data)
+{
+	UNUSED_PARAMETER(props);
+	UNUSED_PARAMETER(property);
+	UNUSED_PARAMETER(data);
+	obs_log(LOG_INFO, "Soraivy: connect arrives with the connect-flow task");
+	return false;
+}
+
+static bool soraivy_go_live_clicked(obs_properties_t *props, obs_property_t *property, void *data)
+{
+	UNUSED_PARAMETER(props);
+	UNUSED_PARAMETER(property);
+	UNUSED_PARAMETER(data);
+	obs_log(LOG_INFO, "Soraivy: go-live arrives with the live-actions task");
+	return false;
+}
+
+static bool soraivy_end_clicked(obs_properties_t *props, obs_property_t *property, void *data)
+{
+	UNUSED_PARAMETER(props);
+	UNUSED_PARAMETER(property);
+	UNUSED_PARAMETER(data);
+	obs_log(LOG_INFO, "Soraivy: end arrives with the live-actions task");
+	return false;
 }
 
 static obs_properties_t *soraivy_service_properties(void *data)
 {
+	obs_properties_t *props = obs_properties_create();
+	obs_property_t *mode;
+
 	UNUSED_PARAMETER(data);
-	/* Full Connect / Go Live / End UI lands with the properties task. */
-	return obs_properties_create();
+
+	obs_properties_add_text(props, "api_base", "API Base", OBS_TEXT_DEFAULT);
+	obs_properties_add_text(props, "session_token", "OBS Token (secret)", OBS_TEXT_PASSWORD);
+
+	mode = obs_properties_add_list(props, "mode", "Mode", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_property_list_add_string(mode, "RTMPS — 30fps HLS", "rtmps");
+	obs_property_list_add_string(mode, "WHIP — 60fps (OBS 31+)", "whip");
+
+	obs_properties_add_text(props, "title", "Stream title (new session)", OBS_TEXT_DEFAULT);
+	obs_properties_add_button(props, "connect_btn", "Connect (fetch creds + set OBS)", soraivy_connect_clicked);
+	obs_properties_add_button(props, "golive_btn", "Go Live", soraivy_go_live_clicked);
+	obs_properties_add_button(props, "end_btn", "End", soraivy_end_clicked);
+	return props;
 }
 
 static const char *soraivy_service_get_url(void *data)
