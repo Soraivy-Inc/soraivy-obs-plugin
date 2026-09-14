@@ -5,7 +5,7 @@ Native OBS Studio plugin for [Soraivy](https://www.soraivy.com) live streaming �
 ## What it does (v0.1.0 target)
 
 - Adds a **Soraivy** service under OBS Settings → Stream.
-- Paste one OBS token (from Soraivy Settings → Streaming), pick RTMPS (30fps) or WHIP (60fps), then Connect / Go Live / End from the plugin panel.
+- Adds a persistent **Soraivy dock** (View → Docks → Soraivy, Aitum-style): paste one OBS token (from Soraivy Settings → Streaming), pick RTMPS (30fps) or WHIP (60fps), then Connect / Go Live / End. Connect auto-applies the server + key to the Soraivy service; token and last session persist across restarts.
 - Tokens are scoped `live:write`-only, revocable, and never logged.
 
 ## Platforms
