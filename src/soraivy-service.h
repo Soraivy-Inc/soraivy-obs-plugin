@@ -49,3 +49,5 @@ struct soraivy_service {
 };
 
 void soraivy_connect_async(struct soraivy_service *service);
+void soraivy_go_live_async(struct soraivy_service *service);
+void soraivy_end_async(struct soraivy_service *service);

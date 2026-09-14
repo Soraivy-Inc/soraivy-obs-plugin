@@ -77,22 +77,20 @@ static bool soraivy_connect_clicked(obs_properties_t *props, obs_property_t *pro
 	soraivy_connect_async((struct soraivy_service *)data);
 	return false;
 }
-
 static bool soraivy_go_live_clicked(obs_properties_t *props, obs_property_t *property, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(property);
-	UNUSED_PARAMETER(data);
-	obs_log(LOG_INFO, "Soraivy: go-live arrives with the live-actions task");
+
+	soraivy_go_live_async((struct soraivy_service *)data);
 	return false;
 }
-
 static bool soraivy_end_clicked(obs_properties_t *props, obs_property_t *property, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(property);
-	UNUSED_PARAMETER(data);
-	obs_log(LOG_INFO, "Soraivy: end arrives with the live-actions task");
+
+	soraivy_end_async((struct soraivy_service *)data);
 	return false;
 }
 
@@ -111,8 +109,8 @@ static obs_properties_t *soraivy_service_properties(void *data)
 	obs_properties_add_text(props, "title", "Stream title (new session)", OBS_TEXT_DEFAULT);
 	obs_properties_add_button2(props, "connect_btn", "Connect (fetch creds + set OBS)", soraivy_connect_clicked,
 				   data);
-	obs_properties_add_button2(props, "golive_btn", "Go Live", soraivy_go_live_clicked, NULL);
-	obs_properties_add_button2(props, "end_btn", "End", soraivy_end_clicked, NULL);
+	obs_properties_add_button2(props, "golive_btn", "Go Live", soraivy_go_live_clicked, data);
+	obs_properties_add_button2(props, "end_btn", "End", soraivy_end_clicked, data);
 	return props;
 }
 
