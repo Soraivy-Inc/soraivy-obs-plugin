@@ -53,6 +53,7 @@ function Package {
         ErrorAction = 'SilentlyContinue'
         Path = @(
             "${ProjectRoot}/release/${ProductName}-*-windows-*.zip"
+            "${ProjectRoot}/release/${ProductName}-*-windows-*-Installer.exe"
         )
     }
 
@@ -66,6 +67,28 @@ function Package {
         Verbose = ($Env:CI -ne $null)
     }
     Compress-Archive -Force @CompressArgs
+    Log-Group
+
+    Log-Group "Building ${ProductName} installer..."
+    $MakeNsis = @(
+        "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+        (Get-Command makensis -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
+    ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+
+    if ( $MakeNsis ) {
+        $InstallerArgs = @(
+            "/DPRODUCT_NAME=${ProductName}"
+            "/DPRODUCT_VERSION=${ProductVersion}"
+            "/DSTAGING_DIR=${ProjectRoot}/release/${Configuration}"
+            "/DOUT_FILE=${ProjectRoot}/release/${OutputName}-Installer.exe"
+            "/DLICENSE_FILE=${ProjectRoot}/LICENSE"
+            "${ProjectRoot}/cmake/windows/installer.nsi"
+        )
+        & $MakeNsis @InstallerArgs
+        if ( $LASTEXITCODE -ne 0 ) { throw "makensis failed with exit code ${LASTEXITCODE}" }
+    } else {
+        Write-Warning 'NSIS makensis not found - skipping installer, zip only.'
+    }
     Log-Group
 }
 
