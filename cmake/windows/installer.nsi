@@ -1,4 +1,4 @@
-; Soraivy for OBS - Windows installer (NSIS 3, Unicode).
+; Soraivy for OBS - Windows installer (NSIS 3, Modern UI 2).
 ; Built by .github/scripts/Package-Windows.ps1, which passes all !defines.
 ; Layout mirrors the CMake install staging:
 ;   <staging>/<product>/bin/64bit/*.dll  ->  <obs>/obs-plugins/64bit/
@@ -27,17 +27,25 @@ Unicode True
 SetCompressor /SOLID lzma
 RequestExecutionLevel admin
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+Name "Soraivy for OBS ${PRODUCT_VERSION}"
 OutFile "${OUT_FILE}"
 InstallDir "$PROGRAMFILES64\obs-studio"
-LicenseData "${LICENSE_FILE}"
 
-Page license
-Page directory
-Page instfiles
+!include "MUI2.nsh"
 
-UninstPage uninstConfirm
-UninstPage instfiles
+!define MUI_ABORTWARNING
+!define MUI_LICENSEPAGE_TEXT_TOP "Press Page Down to see the rest of the agreement. Once you are aware of your rights, click Next to continue."
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+
+!insertmacro MUI_PAGE_LICENSE "${LICENSE_FILE}"
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
 
 Section "Install"
   SetOutPath "$INSTDIR\obs-plugins\64bit"
