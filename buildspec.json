@@ -33,13 +33,13 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.example.plugintemplate-for-obs"
+            "bundleId": "com.soraivy.obs-plugin"
         }
     },
-    "name": "plugintemplate-for-obs",
-    "displayName": "Plugin Template for OBS",
-    "version": "1.0.0",
-    "author": "Your Name Here",
-    "website": "https://example.com",
+    "name": "soraivy-obs",
+    "displayName": "Soraivy for OBS",
+    "version": "0.1.0",
+    "author": "Soraivy, Inc.",
+    "website": "https://www.soraivy.com",
     "email": "me@example.com"
 }
