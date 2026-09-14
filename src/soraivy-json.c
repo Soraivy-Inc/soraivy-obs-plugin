@@ -37,8 +37,8 @@ static const char *skip_ws(const char *p)
 	return p;
 }
 
-/* Copy a JSON string starting at *p (the opening quote consumed by caller
- * check). Handles \" \\ \/ \b \f \n \r \t; \uXXXX becomes '?'. False on
+/* Copy a JSON string starting at *p (just after the opening quote).
+ * Handles \" \\ \/ \b \f \n \r \t; \uXXXX becomes '?'. False on
  * unterminated input or truncation. */
 static bool copy_string(const char **cursor, char *out, size_t out_size)
 {
@@ -178,6 +178,7 @@ bool soraivy_json_get_string(const char *json, const char *key, char *out, size_
 		return false;
 	if (*v != '"')
 		return false;
+	v++;
 	return copy_string(&v, out, out_size);
 }
 
