@@ -19,6 +19,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #include <obs-module.h>
 #include <plugin-support.h>
 
+#include "soraivy-api.h"
+
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
@@ -26,6 +28,7 @@ extern struct obs_service_info soraivy_service;
 
 bool obs_module_load(void)
 {
+	soraivy_api_init();
 	obs_register_service(&soraivy_service);
 	obs_log(LOG_INFO, "plugin loaded successfully (version %s)", PLUGIN_VERSION);
 	return true;
@@ -33,5 +36,6 @@ bool obs_module_load(void)
 
 void obs_module_unload(void)
 {
+	soraivy_api_free();
 	obs_log(LOG_INFO, "plugin unloaded");
 }

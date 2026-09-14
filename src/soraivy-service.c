@@ -19,11 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #include <obs-module.h>
 #include <plugin-support.h>
 
-struct soraivy_service {
-	char *server;
-	char *key;
-	char *bearer_token;
-};
+#include "soraivy-service.h"
 
 static const char *soraivy_service_name(void *type_data)
 {
@@ -31,17 +27,19 @@ static const char *soraivy_service_name(void *type_data)
 	return "Soraivy";
 }
 
+static void soraivy_mirror_user_settings(struct soraivy_service *service, obs_data_t *settings)
+{
+	pthread_mutex_lock(&service->lock);
+	snprintf(service->api_base, sizeof(service->api_base), "%s", obs_data_get_string(settings, "api_base"));
+	snprintf(service->token, sizeof(service->token), "%s", obs_data_get_string(settings, "session_token"));
+	snprintf(service->mode, sizeof(service->mode), "%s", obs_data_get_string(settings, "mode"));
+	snprintf(service->title, sizeof(service->title), "%s", obs_data_get_string(settings, "title"));
+	pthread_mutex_unlock(&service->lock);
+}
+
 static void soraivy_service_update(void *data, obs_data_t *settings)
 {
-	struct soraivy_service *service = data;
-
-	bfree(service->server);
-	bfree(service->key);
-	bfree(service->bearer_token);
-
-	service->server = bstrdup(obs_data_get_string(settings, "server"));
-	service->key = bstrdup(obs_data_get_string(settings, "key"));
-	service->bearer_token = bstrdup(obs_data_get_string(settings, "bearer_token"));
+	soraivy_mirror_user_settings((struct soraivy_service *)data, settings);
 }
 
 static void *soraivy_service_create(obs_data_t *settings, obs_service_t *service)
@@ -49,6 +47,7 @@ static void *soraivy_service_create(obs_data_t *settings, obs_service_t *service
 	struct soraivy_service *data = bzalloc(sizeof(*data));
 	UNUSED_PARAMETER(service);
 
+	pthread_mutex_init(&data->lock, NULL);
 	soraivy_service_update(data, settings);
 	return data;
 }
@@ -57,9 +56,7 @@ static void soraivy_service_destroy(void *data)
 {
 	struct soraivy_service *service = data;
 
-	bfree(service->server);
-	bfree(service->key);
-	bfree(service->bearer_token);
+	pthread_mutex_destroy(&service->lock);
 	bfree(service);
 }
 
@@ -72,13 +69,12 @@ static void soraivy_service_get_defaults(obs_data_t *settings)
 	obs_data_set_default_string(settings, "mode", "rtmps");
 	obs_data_set_default_string(settings, "title", "Live");
 }
-
 static bool soraivy_connect_clicked(obs_properties_t *props, obs_property_t *property, void *data)
 {
 	UNUSED_PARAMETER(props);
 	UNUSED_PARAMETER(property);
-	UNUSED_PARAMETER(data);
-	obs_log(LOG_INFO, "Soraivy: connect arrives with the connect-flow task");
+
+	soraivy_connect_async((struct soraivy_service *)data);
 	return false;
 }
 
@@ -105,8 +101,6 @@ static obs_properties_t *soraivy_service_properties(void *data)
 	obs_properties_t *props = obs_properties_create();
 	obs_property_t *mode;
 
-	UNUSED_PARAMETER(data);
-
 	obs_properties_add_text(props, "api_base", "API Base", OBS_TEXT_DEFAULT);
 	obs_properties_add_text(props, "session_token", "OBS Token (secret)", OBS_TEXT_PASSWORD);
 
@@ -116,7 +110,7 @@ static obs_properties_t *soraivy_service_properties(void *data)
 
 	obs_properties_add_text(props, "title", "Stream title (new session)", OBS_TEXT_DEFAULT);
 	obs_properties_add_button2(props, "connect_btn", "Connect (fetch creds + set OBS)", soraivy_connect_clicked,
-				   NULL);
+				   data);
 	obs_properties_add_button2(props, "golive_btn", "Go Live", soraivy_go_live_clicked, NULL);
 	obs_properties_add_button2(props, "end_btn", "End", soraivy_end_clicked, NULL);
 	return props;
