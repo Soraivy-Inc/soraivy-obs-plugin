@@ -41,4 +41,9 @@ target_sources(
   PRIVATE src/plugin-main.c src/soraivy-service.c src/soraivy-api.c src/soraivy-json.c src/soraivy-actions.c
 )
 
+if(ENABLE_FRONTEND_API AND ENABLE_QT)
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE SORAIVY_HAVE_DOCK)
+  target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/soraivy-dock.cpp)
+endif()
+
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
