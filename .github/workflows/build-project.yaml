@@ -71,6 +71,22 @@ jobs:
             echo "pluginName=${plugin_name}" >> $GITHUB_OUTPUT
           fi
 
+  api-harness:
+    name: API Harness Test 🧪
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build and Run API Harness 🧪
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror -o /tmp/soraivy-api-harness test/api-harness.c src/soraivy-json.c
+          /tmp/soraivy-api-harness
+
   macos-build:
     name: Build for macOS 🍏
     runs-on: macos-15
